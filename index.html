@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小飞行员百科 - 趣味军事基地</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f0f9ff;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .kids-font {
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+
+        .kids-card {
+            background: #ffffff;
+            border: 4px solid #1e293b;
+            border-radius: 30px;
+            box-shadow: 8px 8px 0px #1e293b;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kids-card:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 12px 12px 0px #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .kids-header {
+            background: #facc15;
+            border-bottom: 6px solid #1e293b;
+        }
+
+        .filter-pill {
+            border: 3px solid #1e293b;
+            box-shadow: 4px 4px 0px #1e293b;
+            transition: all 0.2s;
+            margin: 4px;
+        }
+
+        .filter-pill:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #1e293b;
+        }
+
+        .kids-modal {
+            background: rgba(255, 255, 255, 0.95);
+            border: 6px solid #1e293b;
+            border-radius: 40px;
+            box-shadow: 20px 20px 0px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay {
+            background: rgba(59, 130, 246, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-active { display: flex; }
+
+        .image-box {
+            background: #e0f2fe;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: 180px;
+        }
+
+        .stat-badge {
+            background: #fff;
+            border: 2px solid #1e293b;
+            border-radius: 15px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 动画库 */
+        @keyframes float-y {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes drift-x {
+            0%, 100% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-float { animation: float-y 3s ease-in-out infinite; }
+        .animate-drift { animation: drift-x 4s ease-in-out infinite; }
+        .animate-radar { transform-origin: center; animation: spin-slow 4s linear infinite; }
+    </style>
+</head>
+<body>
+
+    <header class="kids-header p-6 mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col items-center gap-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-3 rounded-full border-4 border-slate-800 animate-float">
+                    <i class="fas fa-plane-departure text-4xl text-blue-500"></i>
+                </div>
+                <h1 class="text-4xl md:text-5xl text-slate-800 tracking-wider">小小飞行员百科</h1>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-2">
+                <button onclick="filterCountry('all')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-blue-400 font-bold text-sm transition" data-country="all">🌟 全部</button>
+                <button onclick="filterCountry('中国')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-yellow-400 font-bold text-sm transition" data-country="中国">🇨🇳 中国</button>
+                <button onclick="filterCountry('美国')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-blue-400 font-bold text-sm transition" data-country="美国">🇺🇸 美国</button>
+                <button onclick="filterCountry('俄罗斯')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-slate-400 font-bold text-sm transition" data-country="俄罗斯">🇷🇺 俄罗斯</button>
+                <button onclick="filterCountry('德国')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-yellow-400 font-bold text-sm transition" data-country="德国">🇩🇪 德国</button>
+                <button onclick="filterCountry('英国')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-blue-600 hover:text-white font-bold text-sm transition" data-country="英国">🇬🇧 英国</button>
+                <button onclick="filterCountry('法国')" class="filter-pill px-4 py-2 rounded-2xl bg-white hover:bg-blue-300 font-bold text-sm transition" data-country="法国">🇫🇷 法国</button>
+            </div>
+
+            <div class="relative w-full max-w-md">
+                <input type="text" id="searchInput" placeholder="搜索飞机名字..." 
+                    class="w-full border-4 border-slate-800 rounded-2xl py-3 px-12 text-xl focus:outline-none focus:ring-4 focus:ring-yellow-300">
+                <i class="fas fa-search absolute left-4 top-4 text-2xl text-slate-400"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 pb-20">
+        <div id="aircraftGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+    </main>
+
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
+        <div class="kids-modal max-w-4xl w-full p-8 relative overflow-y-auto max-h-[90vh]" onclick="event.stopPropagation()">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-12 h-12 bg-red-500 border-4 border-slate-800 rounded-full text-white text-2xl hover:scale-110 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const initialData = [
+            // 中国 (10架 - 已调整顺序，直升机和预警机排在最前)
+            { id: 'kj500', name: '空警-500', englishName: 'KJ-500', country: '中国', type: '预警指挥机', themeColor: '#cbd5e1', intro: '我背上顶着一个大圆盘，那是我的大眼睛。我能看清很远很远的敌机，指挥大家战斗。', stats: { '视力': '👀👀👀👀👀', '聪明': '🧠🧠🧠' } },
+            { id: 'z10', name: '直-10', englishName: 'Z-10', country: '中国', type: '霹雳火直升机', themeColor: '#14532d', intro: '我长得像一只大蜻蜓，我有厚厚的装甲，专门在地面掩护兵哥哥们。', stats: { '火力': '🔥🔥🔥🔥🔥', '低飞': '🚜🚜🚜' } },
+            { id: 'z20', name: '直-20', englishName: 'Z-20', country: '中国', type: '多用途直升机', themeColor: '#1e293b', intro: '我是入云龙，我能在冰天雪地的高山上飞。我可以送货，也可以救人。', stats: { '全能': '🌈🌈🌈🌈🌈', '稳定': '⚓⚓⚓' } },
+            { id: 'j20', name: '歼-20', englishName: 'J-20', country: '中国', type: '超级战斗机', themeColor: '#475569', intro: '我是“威龙”，是天空中最厉害的隐身高手！雷达都很难发现我哦。', stats: { '隐身': '👻👻👻👻👻', '速度': '🚀🚀🚀🚀🚀' } },
+            { id: 'j15', name: '歼-15', englishName: 'J-15', country: '中国', type: '飞鲨战斗机', themeColor: '#3b82f6', intro: '我是一只“飞鲨”！我最厉害的本事是从航母大船上起飞，在海上保护大家。', stats: { '起跳': '⚓⚓⚓⚓⚓', '勇敢': '🦁🦁🦁' } },
+            { id: 'j10c', name: '歼-10C', englishName: 'J-10C', country: '中国', type: '猛龙战斗机', themeColor: '#64748b', intro: '我是“猛龙”，我的个子比歼-20小一点点，但我非常灵活，动作飞快！', stats: { '灵活': '🤸‍♂️🤸‍♂️🤸‍♂️🤸‍♂️🤸‍♂️', '全能': '🌟🌟🌟' } },
+            { id: 'y20', name: '运-20', englishName: 'Y-20', country: '中国', type: '空中胖妞', themeColor: '#94a3b8', intro: '大家都叫我“胖妞”，我很温柔。我可以帮坦克和救灾物资搬家，能装下好多东西。', stats: { '大肚子': '🐘🐘🐘🐘🐘', '力量': '💪💪💪' } },
+            { id: 'yy20', name: '运油-20', englishName: 'YY-20', country: '中国', type: '空中加油站', themeColor: '#94a3b8', intro: '我是胖妞的姐妹，我是个“奶妈”！如果别的飞机口渴了，我能在天上给它们喂油。', stats: { '爱心': '❤️❤️❤️❤️', '耐力': '🏃‍♂️🏃‍♂️🏃‍♂️' } },
+            { id: 'h6n', name: '轰-6N', englishName: 'H-6N', country: '中国', type: '战神轰炸机', themeColor: '#334155', intro: '我是“战神”，是队伍里的重型大力士！我可以带着大家伙飞到很远很远的地方。', stats: { '威力': '💥💥💥💥💥', '航程': '🌍🌍🌍' } },
+            { id: 'jl10', name: '教-10', englishName: 'JL-10', country: '中国', type: '猎鹰教练机', themeColor: '#ef4444', intro: '我是“小老师”！新手飞行员都要先跟我学习，才能去开厉害的战斗机。', stats: { '耐心': '📖📖📖📖📖', '速度': '🚀🚀🚀' } },
+            
+            // 美国
+            { id: 'f22', name: 'F-22 猛禽', englishName: 'F-22 Raptor', country: '美国', type: '空中霸王', themeColor: '#60a5fa', intro: '我是猛禽，我是世界上最敏捷的战斗机，翻跟头我最拿手了！', stats: { '翻跟头': '🤸‍♂️🤸‍♂️🤸‍♂️🤸‍♂️', '隐身': '👻👻👻' } },
+            { id: 'a10', name: 'A-10 疣猪', englishName: 'A-10', country: '美国', type: '空中坦克', themeColor: '#4d7c0f', intro: '我长得丑但很温柔。我的皮肤厚厚的，不怕被打。', stats: { '护甲': '🛡️🛡️🛡️🛡️🛡️', '酷': '😎😎' } },
+            
+            // 俄罗斯
+            { id: 'su57', name: '苏-57', englishName: 'Su-57', country: '俄罗斯', type: '特技大拿', themeColor: '#1e293b', intro: '我最擅长在天空中跳舞。虽然我还在学习，但我跳得最高！', stats: { '跳舞': '💃💃💃💃💃', '速度': '🚀🚀🚀' } },
+            
+            // 欧洲组
+            { id: 'eurofighter_de', name: '台风(德)', englishName: 'Eurofighter Typhoon', country: '德国', type: '全能战士', themeColor: '#fbbf24', intro: '我有两个三角形的小翅膀在前面，飞起来特别稳。', stats: { '平稳': '⚖️⚖️⚖️⚖️⚖️', '科技': '💻💻' } },
+            { id: 'harrier', name: '海鹞', englishName: 'Sea Harrier', country: '英国', type: '垂直起跳机', themeColor: '#1e3a8a', intro: '我会像直升机一样原地起跳！不需要长长的跑道。', stats: { '起跳': '🦘🦘🦘🦘🦘', '奇特': '✨✨' } },
+            { id: 'rafale', name: '阵风', englishName: 'Dassault Rafale', country: '法国', type: '优雅剑客', themeColor: '#38bdf8', intro: '我来自浪漫的法国，我长得很漂亮，而且我可以同时对付好多个坏蛋。', stats: { '漂亮': '💎💎💎💎💎', '全能': '🌟🌟🌟' } }
+        ];
+
+        const aircraftData = [...initialData];
+
+        function getKidsSvg(type, color) {
+            const svgBase = `<svg viewBox="0 0 200 200" class="w-40 h-40">`;
+            // 直升机类：螺旋桨飞快旋转
+            if (type.includes('直升机')) {
+                return svgBase + `
+                    <g class="animate-float">
+                        <circle cx="100" cy="100" r="80" fill="#e0f2fe" opacity="0.3"/>
+                        <rect x="40" y="55" width="120" height="8" fill="#1e293b" rx="4">
+                            <animateTransform attributeName="transform" type="rotate" from="0 100 59" to="360 100 59" dur="0.1s" repeatCount="indefinite" />
+                        </rect>
+                        <path d="M50 100 Q50 60 100 60 L140 70 Q160 70 160 90 L160 110 Q160 130 140 130 L70 130 Q50 130 50 100 Z" fill="${color}" stroke="#1e293b" stroke-width="6"/>
+                    </g>
+                </svg>`;
+            }
+            // 预警机类：雷达圆盘慢速旋转
+            if (type.includes('预警')) {
+                return svgBase + `
+                    <g class="animate-float">
+                        <g class="animate-radar" style="transform-origin: 100px 65px;">
+                            <ellipse cx="100" cy="65" rx="50" ry="15" fill="#facc15" stroke="#1e293b" stroke-width="4"/>
+                            <line x1="100" y1="65" x2="150" y2="65" stroke="#1e293b" stroke-width="2"/>
+                        </g>
+                        <path d="M40 110 L100 40 L160 110 L100 140 Z" fill="${color}" stroke="#1e293b" stroke-width="6"/>
+                    </g>
+                </svg>`;
+            }
+            // 运输机/加油机/轰炸机类：前后平移模拟重型飞行
+            if (type.includes('运') || type.includes('轰炸')) {
+                return svgBase + `
+                    <g class="animate-drift">
+                        <path d="M20 120 L100 30 L180 120 Z" fill="${color}" stroke="#1e293b" stroke-width="6"/>
+                        <rect x="60" y="110" width="80" height="40" rx="20" fill="${color}" stroke="#1e293b" stroke-width="6"/>
+                        <circle cx="80" cy="130" r="5" fill="#fff" opacity="0.5"/>
+                        <circle cx="120" cy="130" r="5" fill="#fff" opacity="0.5"/>
+                    </g>
+                </svg>`;
+            }
+            // 战斗机/教练机类：上下浮动模拟灵活飞行
+            return svgBase + `
+                <g class="animate-float">
+                    <path d="M40 120 L100 30 L160 120 L100 150 Z" fill="${color}" stroke="#1e293b" stroke-width="8"/>
+                    <path d="M100 30 L115 140 L100 160 L85 140 Z" fill="#fff" stroke="#1e293b" stroke-width="4"/>
+                    <path d="M90 60 L110 60" stroke="#fff" stroke-width="2" opacity="0.3"/>
+                </g>
+            </svg>`;
+        }
+
+        function renderGrid(data) {
+            const grid = document.getElementById('aircraftGrid');
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-20 text-slate-400 text-2xl font-bold">没有找到这架飞机哦... 🕵️‍♂️</div>`;
+                return;
+            }
+            grid.innerHTML = data.map(plane => `
+                <div class="kids-card p-6" onclick="openDetails('${plane.id}')">
+                    <div class="image-box mb-4 overflow-hidden">
+                        ${getKidsSvg(plane.type, plane.themeColor)}
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-2xl mb-1">${plane.name}</h3>
+                        <div class="flex justify-center gap-2">
+                            <span class="px-2 py-1 bg-yellow-200 rounded-lg border-2 border-slate-800 text-[10px] font-bold">${plane.country}</span>
+                            <span class="px-2 py-1 bg-blue-200 rounded-lg border-2 border-slate-800 text-[10px] font-bold">${plane.type}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openDetails(id) {
+            const plane = aircraftData.find(p => p.id === id);
+            if (!plane) return;
+            const content = document.getElementById('modalContent');
+            content.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    <div class="w-full md:w-1/2">
+                        <div class="image-box bg-white border-4 border-dashed border-blue-300 mb-6 py-12">
+                            ${getKidsSvg(plane.type, plane.themeColor)}
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            ${Object.entries(plane.stats || {}).map(([k,v]) => `
+                                <div class="stat-badge">
+                                    <span class="text-slate-500 text-xs mb-1 font-bold">${k}</span>
+                                    <span class="text-xl">${v}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div class="mb-4">
+                            <span class="text-blue-500 font-bold">代号：${plane.englishName}</span>
+                            <h2 class="text-5xl text-slate-800 mb-2">${plane.name}</h2>
+                            <div class="inline-block px-4 py-1 bg-pink-200 rounded-full border-2 border-slate-800 font-bold">
+                                ${plane.country} 的王牌
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 p-6 rounded-3xl border-4 border-yellow-200 text-xl leading-relaxed text-slate-700">
+                            " ${plane.intro} "
+                        </div>
+                        <div class="mt-6 flex gap-4">
+                            <div class="flex-1 bg-blue-100 p-4 rounded-2xl border-2 border-blue-200 text-center">
+                                <p class="text-[10px] text-blue-500 font-bold uppercase">机型分类</p>
+                                <p class="text-lg font-bold">${plane.type}</p>
+                            </div>
+                            <div class="flex-1 bg-purple-100 p-4 rounded-2xl border-2 border-purple-200 text-center">
+                                <p class="text-[10px] text-purple-500 font-bold uppercase">战斗力</p>
+                                <p class="text-lg font-bold">⭐⭐⭐⭐⭐</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalOverlay').classList.add('modal-active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('modal-active');
+        }
+
+        function filterCountry(country) {
+            document.querySelectorAll('.filter-pill').forEach(btn => {
+                const isActive = btn.dataset.country === country;
+                btn.classList.toggle('bg-yellow-400', isActive);
+                btn.classList.toggle('bg-white', !isActive);
+                btn.style.borderColor = isActive ? '#b45309' : '#1e293b';
+            });
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = aircraftData.filter(p => {
+                const matchSearch = p.name.includes(query) || p.country.includes(query) || p.type.includes(query);
+                const matchCountry = country === 'all' || p.country === country;
+                return matchSearch && matchCountry;
+            });
+            renderGrid(filtered);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', () => filterCountry('all'));
+        window.onload = () => filterCountry('all');
+    </script>
+</body>
+</html>
